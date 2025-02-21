@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosPublic = axios.create({
-    baseURL:"https://fit-verse-server-kappa.vercel.app"
+    baseURL:"http://localhost:4000/"
 })
 const UseAxiosPublic = () => {
     return axiosPublic;
