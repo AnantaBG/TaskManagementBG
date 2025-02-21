@@ -67,7 +67,7 @@ const [showPassword, setShowPassword] = useState(false);
         })
   }
     return (
-      <div className="my-10 w-11/12 mx-auto">
+      <div className="my-10 w-6/12 mx-auto">
         <form onSubmit={handleSubmit}  className="flex max-w-screen-md  mx-auto flex-col gap-4">
           <label className="text-4xl font-extrabold mx-auto">Login</label>
       <div>

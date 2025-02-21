@@ -1,9 +1,12 @@
+import { useContext } from "react";
 import { CgNotes } from "react-icons/cg";
 import { MdDoneOutline } from "react-icons/md";
 import { RiProgress1Line, RiTodoLine } from "react-icons/ri";
 import { Link } from "react-router-dom";
+import { AuthC } from "../Auth/AuthProviderx";
 
 const Sidebar = () => {
+    const {user, logOut} = useContext(AuthC);
     const TaskCategory = [
         {
             title: "All Tasks",
@@ -30,9 +33,9 @@ const Sidebar = () => {
     
     return (
         <>
-            <div>
-                <h2 className="text-xl font-semibold">user.DisplayName</h2>
-                <h2 className="my-2 text-gray-600">user.email</h2>
+            <div className="">
+                <h2 className="text-xl font-semibold">{user?.DisplayName}</h2>
+                <h2 className="my-2 text-gray-600">{user?.email}</h2>
                 <hr />
             </div>
             <div className="">
@@ -45,9 +48,13 @@ const Sidebar = () => {
                 )
                 }
             </div>
-            <div>
-                <button className="w-full bg-slate-500 text-white p-1 rounded">Log-Out</button>
+            {user?.email && (
+                <div>
+                <button onClick={logOut} className="w-full bg-slate-500 text-white p-1 rounded">Log-Out</button>
             </div>
+            )
+        }
+            
         </>
     );
 };
