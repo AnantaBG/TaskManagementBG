@@ -9,7 +9,7 @@ import DoneTasks from "./components/HomePage/SideBarComponents/DoneTasks"
 function App() {
 
   return (
-<div className="bg-blue-200 text-stone-900 h-screen p-2">
+<div className="bg-blue-200 text-stone-900 min-h-screen p-2">
   <BrowserRouter>
   <Routes>
     <Route exact path="/" element={<HomePage />}>
