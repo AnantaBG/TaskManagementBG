@@ -176,23 +176,48 @@ const AllDataCard = () => {
     };
 
     const handleUpdateSubmit = async (e) => {
-        e.preventDefault();
-
-        try {
-            const response = await axiosPublic.patch(`/alltasks/${selectedTask._id}`, newTask);
-            if (!response.data) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            setRefresh(!refresh);
-            handleCloseUpdateModal();
-            console.log("Task updated successfully:", response.data);
-            setNewTask({ title: "", description: "", category: "" });
-
-        } catch (error) {
-            console.error("Error updating task:", error);
-        }
-    };
+      e.preventDefault();
+  
+      const title = newTask.title.trim();
+      const description = newTask.description.trim();
+  
+      if (!title) {
+          alert("Task title is required.");
+          return;
+      }
+  
+      if (title.length > 50) {
+          alert("Task Updated title must be at most 50 characters.");
+          return;
+      }
+  
+      if (description.length > 200) {
+          alert("Task Updated description must be at most 200 characters.");
+          return;
+      }
+  
+      try {
+          const updatedTask = {
+              ...newTask,
+              title: title,  // Use trimmed title
+              description: description, // Use trimmed description
+          };
+  
+          const response = await axiosPublic.patch(`/alltasks/${selectedTask._id}`, updatedTask);
+          if (!response.data) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+          }
+  
+          setRefresh(!refresh);
+          handleCloseUpdateModal();
+          console.log("Task updated successfully:", response.data);
+          setNewTask({ title: "", description: "", category: "" });
+  
+      } catch (error) {
+          console.error("Error updating task:", error);
+          alert("An error occurred while updating the task. Please try again later."); // User-friendly error message
+      }
+  };
     const filteredTasks = cardData.filter(({ userEmail }) => 
       userEmail === user?.email
     );
@@ -200,7 +225,7 @@ const AllDataCard = () => {
     return (
         <div className="grid lg:grid-cols-3  md:grid-cols-2 sm:grid-cols-1 grid-cols-1 gap-2">
             {filteredTasks.map((data) => (
-                <Card key={data._id} className="shadow-2xl overflow-y-scroll  min-h-[260px] max-h-[600px] shadow-black min-w-64 sm:min-w-72 md:min-w-64 lg:min-w-72 xl:min-w-80 max-w-64 sm:max-w-72 md:max-w-64 lg:max-w-72 xl:max-w-80 mx-auto bg-green-100 rounded-md">
+                <Card key={data._id} className="shadow-2xl  min-h-[260px] max-h-[600px] shadow-black min-w-64 sm:min-w-72 md:min-w-64 lg:min-w-72 xl:min-w-80 max-w-64 sm:max-w-72 md:max-w-64 lg:max-w-72 xl:max-w-80 mx-auto bg-green-100 rounded-md">
                     <div className="w-full">
                         <p className="text-xl font-semibold">{data.title}</p>
                         <h1 className="opacity-70 my-2 text-xs ">{data.description}</h1>
@@ -209,26 +234,23 @@ const AllDataCard = () => {
                       </div>
                     <div className="w-full">
                         <div className="flex gap-1 mx-auto justify-center">
-                            <Button
-                                onClick={() => handleCategoryClick(data._id, "To-Do")}
-                                disabled={data.category === "To-Do"}
-                            >
-                                <RiTodoFill />
-                            </Button>
-                            <Button
-                                className="bg-slate-500"
-                                onClick={() => handleCategoryClick(data._id, "In Progress")}
-                                disabled={data.category === "In Progress"}
-                            >
-                                <RiProgress1Fill />
-                            </Button>
-                            <Button
-                                className="bg-green-400"
-                                onClick={() => handleCategoryClick(data._id, "Done")}
-                                disabled={data.category === "Done"}
-                            >
-                                <MdDoneAll />
-                            </Button>
+                        <Button
+                         onClick={() => handleCategoryClick(data._id, "To-Do")}
+                         disabled={data.category === "To-Do" || data.category === "Done"}>
+                          <RiTodoFill />
+                        </Button>
+                        <Button 
+                         className="bg-slate-500" 
+                         onClick={() => handleCategoryClick(data._id, "In Progress")}
+                         disabled={data.category === "In Progress" || data.category === "Done"} >
+                          <RiProgress1Fill />
+                        </Button>
+                        <Button
+                        className="bg-green-400" 
+                        onClick={() => handleCategoryClick(data._id, "Done")} 
+                        disabled={data.category === "Done"} >
+                          <MdDoneAll />
+                        </Button>
                             <Button onClick={() => handleUpdateTask(data)} className="bg-stone-500">
                                 <BiEdit />
                             </Button>
