@@ -125,32 +125,55 @@ const AllDataCard = () => {
             return () => clearInterval(intervalId);
       }, []);
 
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-
-      try {
-        const timestamp = currentDate.toISOString().split('T')[0] + ' ' + currentDate.toLocaleTimeString();;
-
-          const taskWithUserInfo = {
-              ...newTask,
-              userEmail: user.email,
-              timestamp: timestamp,
-          };
-
-          const response = await axiosPublic.post('/alltasks', taskWithUserInfo);
-          if (!response.data) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          setRefresh(!refresh);
-          handleCloseModal();
-          console.log("Task added successfully:", response.data);
-          setNewTask({ title: "", description: "", category: "" });
-
-      } catch (error) {
-          console.error("Error adding task:", error);
-      }
-  };
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+    
+        const title = newTask.title.trim();
+        const description = newTask.description.trim();
+    
+        if (!title) {
+            alert("Task title is required.");
+            return;
+        }
+    
+        if (title.length > 50) {
+            alert("Task title must be at most 50 characters.");
+            return;
+        }
+    
+        if (description.length > 200) {
+            alert("Task description must be at most 200 characters.");
+            return;
+        }
+    
+        try {
+          const timestamp = currentDate.toISOString().split('T')[0] + ' ' + currentDate.toLocaleTimeString();;
+    
+            const taskWithUserInfo = {
+                ...newTask,
+                title: title,
+                description: description,
+                userEmail: user.email,
+                timestamp: timestamp,
+            };
+    
+            const response = await axiosPublic.post('/alltasks', taskWithUserInfo);
+    
+            if (!response.data) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+    
+            setRefresh(!refresh);
+            handleCloseModal(); 
+            console.log("Task added successfully:", response.data);
+            setNewTask({ title: "", description: "", category: "To-Do" }); // Reset the form
+          setCardData(prevCardData => [...prevCardData, response.data]);
+    
+        } catch (error) {
+            console.error("Error adding task:", error);
+            alert("An error occurred while adding the task. Please try again later.");
+        }
+    };
 
     const handleUpdateSubmit = async (e) => {
         e.preventDefault();
@@ -175,13 +198,14 @@ const AllDataCard = () => {
     );
 
     return (
-        <div className="grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 grid-cols-1 gap-2">
+        <div className="grid lg:grid-cols-3  md:grid-cols-2 sm:grid-cols-1 grid-cols-1 gap-2">
             {filteredTasks.map((data) => (
-                <Card key={data._id} className="shadow-2xl shadow-black min-w-64 sm:min-w-72 md:min-w-64 lg:min-w-72 xl:min-w-80 max-w-64 sm:max-w-72 md:max-w-64 lg:max-w-72 xl:max-w-80 mx-auto bg-green-100 rounded-md">
-                    <div>
+                <Card key={data._id} className="shadow-2xl overflow-y-scroll  min-h-[260px] max-h-[600px] shadow-black min-w-64 sm:min-w-72 md:min-w-64 lg:min-w-72 xl:min-w-80 max-w-64 sm:max-w-72 md:max-w-64 lg:max-w-72 xl:max-w-80 mx-auto bg-green-100 rounded-md">
+                    <div className="w-full">
                         <p className="text-xl font-semibold">{data.title}</p>
-                        <h1 className="opacity-70 my-2">{data.description}</h1>
+                        <h1 className="opacity-70 my-2 text-xs ">{data.description}</h1>
                         <h1 className="opacity-70 my-2">{data.category}</h1>
+                        <h1 className="opacity-70 my-2">{data.timestamp}</h1>
                     </div>
                     <div className="w-full">
                         <div className="flex gap-1 mx-auto justify-center">
@@ -220,7 +244,7 @@ const AllDataCard = () => {
 
             <Card
                 onClick={handleAddTask}
-                className="shadow-2xl min-h-[260px] shadow-black min-w-64 sm:min-w-72 md:min-w-64 lg:min-w-72 xl:min-w-80 max-w-64 sm:max-w-72 md:max-w-64 lg:max-w-72 xl:max-w-80 mx-auto bg-green-100 rounded-md"
+                className="shadow-2xl min-h-[260px] max-h-[320px] shadow-black min-w-64 sm:min-w-72 md:min-w-64 lg:min-w-72 xl:min-w-80 max-w-64 sm:max-w-72 md:max-w-64 lg:max-w-72 xl:max-w-80 mx-auto bg-green-100 rounded-md"
             >
                 <div className="flex flex-col justify-center items-center">
                     <CgAdd className="text-5xl" />
