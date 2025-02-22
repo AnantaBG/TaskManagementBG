@@ -1,13 +1,15 @@
 /* eslint-disable no-unused-vars */
 import { Button, Card, Textarea, TextInput } from "flowbite-react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { BiEdit, BiTrash, BiX } from "react-icons/bi";
 import { CgAdd } from "react-icons/cg";
 import { MdDoneAll } from "react-icons/md";
 import { RiProgress1Fill, RiTodoFill } from "react-icons/ri";
 import UseAxiosPublic from "../../Auth/UseAxiosPublic";
+import { AuthC } from "../../Auth/AuthProviderx";
 
 const AllDataCard = () => {
+    const {user} = useContext(AuthC);
     const axiosPublic = UseAxiosPublic();
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
@@ -18,6 +20,7 @@ const AllDataCard = () => {
     const [todoDisabled, setTodoDisabled] = useState(true);
     const [inProgressDisabled, setInProgressDisabled] = useState(false);
     const [doneDisabled, setDoneDisabled] = useState(false);
+    const [currentDate, setCurrentDate] = useState(new Date());
 
     useEffect(() => {
         const fetchTasks = async () => {
@@ -33,7 +36,7 @@ const AllDataCard = () => {
         };
 
         fetchTasks();
-    }, [refresh]);
+    }, [refresh, axiosPublic]);
 
     const handleUpdateTask = (task) => {
         setSelectedTask(task);
@@ -115,25 +118,39 @@ const AllDataCard = () => {
             console.error("Error updating task category:", error);
         });
     };
+    useEffect(() => {
+      const intervalId = setInterval(() => {
+          setCurrentDate(new Date());
+        }, 1000);
+            return () => clearInterval(intervalId);
+      }, []);
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+      e.preventDefault();
 
-        try {
-            const response = await axiosPublic.post('/alltasks', newTask);
-            if (!response.data) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+      try {
+        const timestamp = currentDate.toISOString().split('T')[0] + ' ' + currentDate.toLocaleTimeString();;
 
-            setRefresh(!refresh);
-            handleCloseModal();
-            console.log("Task added successfully:", response.data);
-            setNewTask({ title: "", description: "", category: "" });
+          const taskWithUserInfo = {
+              ...newTask,
+              userEmail: user.email,
+              timestamp: timestamp,
+          };
 
-        } catch (error) {
-            console.error("Error adding task:", error);
-        }
-    };
+          const response = await axiosPublic.post('/alltasks', taskWithUserInfo);
+          if (!response.data) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          setRefresh(!refresh);
+          handleCloseModal();
+          console.log("Task added successfully:", response.data);
+          setNewTask({ title: "", description: "", category: "" });
+
+      } catch (error) {
+          console.error("Error adding task:", error);
+      }
+  };
 
     const handleUpdateSubmit = async (e) => {
         e.preventDefault();
@@ -153,10 +170,13 @@ const AllDataCard = () => {
             console.error("Error updating task:", error);
         }
     };
+    const filteredTasks = cardData.filter(({ userEmail }) => 
+      userEmail === user?.email
+    );
 
     return (
         <div className="grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 grid-cols-1 gap-2">
-            {cardData.map((data) => (
+            {filteredTasks.map((data) => (
                 <Card key={data._id} className="shadow-2xl shadow-black min-w-64 sm:min-w-72 md:min-w-64 lg:min-w-72 xl:min-w-80 max-w-64 sm:max-w-72 md:max-w-64 lg:max-w-72 xl:max-w-80 mx-auto bg-green-100 rounded-md">
                     <div>
                         <p className="text-xl font-semibold">{data.title}</p>

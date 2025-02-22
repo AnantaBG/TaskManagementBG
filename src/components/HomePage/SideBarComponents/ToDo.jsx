@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import UseAxiosPublic from '../../Auth/UseAxiosPublic';
 import { Card } from 'flowbite-react'; // Import the Card component
+import { AuthC } from '../../Auth/AuthProviderx';
 
 const ToDo = () => {
+        const {user} = useContext(AuthC);
     const [tasks, setTasks] = useState([]);
     const axiosPublic = UseAxiosPublic();
 
@@ -19,15 +21,17 @@ const ToDo = () => {
 
         fetchTasks();
     }, [axiosPublic]);
-
+    const filteredTodoTasks = tasks.filter(({ userEmail }) => 
+        userEmail === user?.email
+      );
     return (
         <div>
             <h2 className='text-3xl font-semibold text-center mb-5'>To-Do Tasks</h2>
-            {tasks.length === 0 ? (
+            {filteredTodoTasks.length === 0 ? (
                 <p>No To-Do tasks found.</p>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"> {/* Grid for cards */}
-                    {tasks.map((data) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredTodoTasks?.map((data) => (
                         <Card key={data._id} className="shadow-2xl shadow-black min-w-64 sm:min-w-72 md:min-w-64 lg:min-w-72 xl:min-w-80 max-w-64 sm:max-w-72 md:max-w-64 lg:max-w-72 xl:max-w-80 mx-auto bg-green-100 rounded-md">
                         <div>
                             <p className="text-xl font-semibold">{data.title}</p>
