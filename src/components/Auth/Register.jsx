@@ -7,6 +7,7 @@ import { Button, Label, TextInput } from "flowbite-react";
 import Swal from "sweetalert2";
 import UseAxiosPublic from "./UseAxiosPublic";
 import { AuthC } from "./AuthProviderx";
+import { Helmet } from "react-helmet";
 
 
 const Register = () => {
@@ -94,10 +95,11 @@ const navigate = useNavigate();
   }
     return (
 <div className="my-10 w-6/12 mx-auto">
-<div>
-            {/* <Helmet>
-                <title>Register New Account</title>
-            </Helmet> */}
+    <Helmet>
+        <title>Taskman || Register</title>
+    </Helmet>
+      <div>
+
             <form onSubmit={handleSubmit}  className="flex max-w-screen-md  mx-auto flex-col gap-4">
                 <label className="text-4xl font-extrabold mx-auto">Register</label>
             <div>

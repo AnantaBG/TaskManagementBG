@@ -56,7 +56,6 @@ const AllDataCard = () => {
             }
 
             setCardData(cardData.filter(task => task._id !== taskId));
-            console.log("Task deleted successfully:", response.data);
 
         } catch (error) {
             console.error("Error deleting task:", error);
@@ -165,7 +164,6 @@ const AllDataCard = () => {
     
             setRefresh(!refresh);
             handleCloseModal(); 
-            console.log("Task added successfully:", response.data);
             setNewTask({ title: "", description: "", category: "To-Do" }); // Reset the form
           setCardData(prevCardData => [...prevCardData, response.data]);
     
@@ -210,7 +208,6 @@ const AllDataCard = () => {
   
           setRefresh(!refresh);
           handleCloseUpdateModal();
-          console.log("Task updated successfully:", response.data);
           setNewTask({ title: "", description: "", category: "" });
   
       } catch (error) {

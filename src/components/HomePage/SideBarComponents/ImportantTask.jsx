@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from 'react';
 import UseAxiosPublic from '../../Auth/UseAxiosPublic';
 import { Card } from 'flowbite-react';
 import { AuthC } from '../../Auth/AuthProviderx';
+import { Helmet } from 'react-helmet';
 
 const ImportantTask = () => {
     const {user} = useContext(AuthC); 
@@ -26,6 +27,9 @@ const ImportantTask = () => {
       );
     return (
         <div>
+            <Helmet>
+        <title>Taskman || In Progress</title>
+    </Helmet>
             <h2 className='text-3xl font-semibold text-center mb-5'>In Progress Tasks</h2> {/* Updated heading */}
             {filteredInPTasks.length === 0 ? (
                 <p>No In Progress tasks found.</p>

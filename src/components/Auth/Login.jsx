@@ -7,6 +7,7 @@ import { Button, Label, TextInput } from "flowbite-react";
 import Swal from "sweetalert2";
 import { AuthC } from "./AuthProviderx";
 import UseAxiosPublic from "./UseAxiosPublic";
+import { Helmet } from "react-helmet";
 
 const Login = () => {
 const {logIn, setUser, googleSignIn} = useContext(AuthC);
@@ -56,7 +57,6 @@ const [showPassword, setShowPassword] = useState(false);
               .then(res =>
                 
               {
-                console.log(res)
                 if(res.data.insertedId){
                   Swal.fire({
                               icon: 'success',
@@ -70,6 +70,9 @@ const [showPassword, setShowPassword] = useState(false);
   }
     return (
       <div className="my-10 w-6/12 mx-auto">
+        <Helmet>
+        <title>Taskman || Login</title>
+    </Helmet>
         <form onSubmit={handleSubmit}  className="flex max-w-screen-md  mx-auto flex-col gap-4">
           <label className="text-4xl font-extrabold mx-auto">Login</label>
       <div>

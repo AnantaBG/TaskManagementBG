@@ -1,7 +1,8 @@
 import { useContext, useEffect, useState } from 'react';
 import UseAxiosPublic from '../../Auth/UseAxiosPublic';
-import { Card } from 'flowbite-react'; // Import the Card component
+import { Card } from 'flowbite-react';
 import { AuthC } from '../../Auth/AuthProviderx';
+import { Helmet } from 'react-helmet';
 
 const ToDo = () => {
         const {user} = useContext(AuthC);
@@ -15,7 +16,7 @@ const ToDo = () => {
                 setTasks(response.data);
             } catch (error) {
                 console.error('Error fetching To-Do tasks:', error);
-                // Handle error (e.g., display error message)
+                
             }
         };
 
@@ -26,6 +27,9 @@ const ToDo = () => {
       );
     return (
         <div>
+    <Helmet>
+        <title>Taskman || To-Do</title>
+    </Helmet>
             <h2 className='text-3xl font-semibold text-center mb-5'>To-Do Tasks</h2>
             {filteredTodoTasks.length === 0 ? (
                 <p>No To-Do tasks found.</p>

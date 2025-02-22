@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from 'react';
 import UseAxiosPublic from '../../Auth/UseAxiosPublic';
 import { Card } from 'flowbite-react';
 import { AuthC } from '../../Auth/AuthProviderx';
+import { Helmet } from 'react-helmet';
 
 const DoneTasks = () => {
     const {user} = useContext(AuthC);
@@ -26,6 +27,9 @@ const DoneTasks = () => {
       );
     return (
         <div>
+            <Helmet>
+        <title>Taskman || Done</title>
+    </Helmet>
             <h2 className='text-3xl font-semibold text-center mb-5'>Done Tasks</h2>
             {filteredDTasks.length === 0 ? (
                 <p>No Done tasks found.</p>
