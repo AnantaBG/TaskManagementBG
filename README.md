@@ -46,15 +46,6 @@ Users must authenticate via **Firebase Authentication (Google Sign-In)** to acce
 
 ---
 
-## 🛠 Installation  
-
-### **1️⃣ Clone the Repository**  
-```sh
-git clone https://github.com/AnantaBG/TaskManagementBG
-cd task-manager
-
-
-
 ## 📜 License  
 
 This project is licensed under the **MIT License**.  
@@ -65,4 +56,11 @@ This project is licensed under the **MIT License**.
 ---
 
 💬 **Feel free to contribute or provide feedback! 🚀**  
+
+## 🛠 Installation  
+
+### **1️⃣ Clone the Repository**  
+```sh
+git clone https://github.com/AnantaBG/TaskManagementBG
+cd task-manager
 
