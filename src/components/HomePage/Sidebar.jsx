@@ -1,36 +1,41 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { CgNotes } from "react-icons/cg";
 import { MdDoneOutline } from "react-icons/md";
 import { RiProgress1Line, RiTodoLine } from "react-icons/ri";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { AuthC } from "../Auth/AuthProviderx";
 
 const Sidebar = () => {
-    const {user, logOut} = useContext(AuthC);
+    const { user, logOut } = useContext(AuthC);
+    const [activeLink, setActiveLink] = useState("/");
+    const location = useLocation();
+
     const TaskCategory = [
         {
             title: "All Tasks",
-            icon:<CgNotes></CgNotes>,
+            icon: <CgNotes />,
             link: "/"
         },
         {
             title: "To-Do",
-            icon:<RiTodoLine></RiTodoLine>,
-            link: "todo"
+            icon: <RiTodoLine />,
+            link: "/todo" // Add the leading slash
         },
         {
             title: "In-Progrss",
-            icon:<RiProgress1Line></RiProgress1Line>,
-            link: "inprogress"
+            icon: <RiProgress1Line />,
+            link: "/inprogress" // Add the leading slash
         },
         {
             title: "Done",
-            icon: <MdDoneOutline></MdDoneOutline>,
-            link: "done"
+            icon: <MdDoneOutline />,
+            link: "/done" // Add the leading slash
         }
-    ]
-        
-    
+    ];
+
+    useEffect(() => {
+        setActiveLink(location.pathname);
+    }, [location]);
     return (
         <>
             <div className="">
@@ -41,9 +46,14 @@ const Sidebar = () => {
             <div className="">
                 {
                     TaskCategory.map((Tasks, id) => (
-                        <Link to={Tasks.link} key={id} className="my-2 flex items-center gap-2 text-xl hover:bg-gray-200 p-2 rounded-xl transition-all duration-300">
-                            {Tasks.icon} {Tasks.title}
-                        </Link>
+                        <Link
+                        to={Tasks.link}
+                        key={id}
+                        className={`my-2 flex items-center gap-2 text-xl p-2 rounded-xl transition-all duration-300
+                            ${activeLink === Tasks.link ? "bg-white" : "hover:bg-gray-200"}`}
+                    >
+                        {Tasks.icon} {Tasks.title}
+                    </Link>
                     )
                 )
                 }
