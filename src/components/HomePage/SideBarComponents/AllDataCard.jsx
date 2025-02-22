@@ -204,9 +204,9 @@ const AllDataCard = () => {
                     <div className="w-full">
                         <p className="text-xl font-semibold">{data.title}</p>
                         <h1 className="opacity-70 my-2 text-xs ">{data.description}</h1>
-                        <h1 className="opacity-70 my-2">{data.category}</h1>
-                        <h1 className="opacity-70 my-2">{data.timestamp}</h1>
-                    </div>
+                        <h1 className="text-sm my-2 font-bold">{data.category}</h1>
+                        <h1 className=" text-xs my-2">Task Created On: {data.timestamp}</h1>
+                      </div>
                     <div className="w-full">
                         <div className="flex gap-1 mx-auto justify-center">
                             <Button

@@ -36,7 +36,7 @@ const DoneTasks = () => {
                             <div>
                                 <p className="text-xl font-semibold">{data.title}</p>
                                 <h1 className="opacity-70 my-2">{data.description}</h1>
-                                <h1 className="opacity-70 my-2">{data.category}</h1> {/* Optional: Display category */}
+                                <h1 className=" text-xs my-2">Task Created On: {data.timestamp}</h1>
                             </div>
                         </Card>
                     ))}

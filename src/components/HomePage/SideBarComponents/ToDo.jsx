@@ -34,10 +34,10 @@ const ToDo = () => {
                     {filteredTodoTasks?.map((data) => (
                         <Card key={data._id} className="shadow-2xl shadow-black min-w-64 sm:min-w-72 md:min-w-64 lg:min-w-72 xl:min-w-80 max-w-64 sm:max-w-72 md:max-w-64 lg:max-w-72 xl:max-w-80 mx-auto bg-green-100 rounded-md">
                         <div>
-                            <p className="text-xl font-semibold">{data.title}</p>
-                            <h1 className="opacity-70 my-2">{data.description}</h1>
-                            <h1 className="opacity-70 my-2">{data.category}</h1>
-                        </div>
+                                <p className="text-xl font-semibold">{data.title}</p>
+                                <h1 className="opacity-70 my-2">{data.description}</h1>
+                                <h1 className=" text-xs my-2">Task Created On: {data.timestamp}</h1>
+                            </div>
                         
                     </Card>
                     ))}
