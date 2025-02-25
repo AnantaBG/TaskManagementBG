@@ -7,12 +7,16 @@ import { MdDoneAll } from "react-icons/md";
 import { RiProgress1Fill, RiTodoFill } from "react-icons/ri";
 import UseAxiosPublic from "../../Auth/UseAxiosPublic";
 import { AuthC } from "../../Auth/AuthProviderx";
+import DropArea from "./DropArea";
+import Swal from "sweetalert2";
+import Loading from "../Loading";
 
 const AllDataCard = () => {
     const {user} = useContext(AuthC);
     const axiosPublic = UseAxiosPublic();
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
+    const [activeTask, setActiveTask] = useState(null);
     const [updateModalOpen, setUpdateModalOpen] = useState(false);
     const [newTask, setNewTask] = useState({ title: "", description: "", category: "To-Do" });
     const [cardData, setCardData] = useState([]);
@@ -21,6 +25,86 @@ const AllDataCard = () => {
     const [inProgressDisabled, setInProgressDisabled] = useState(false);
     const [doneDisabled, setDoneDisabled] = useState(false);
     const [currentDate, setCurrentDate] = useState(new Date());
+    const [isLoading, setIsLoading] = useState(false); // Add a loading state
+    const [dragging, setDragging] = useState(false);
+    const [draggedItemId, setDraggedItemId] = useState(null); // Store the ID
+    const [dropTargetId, setDropTargetId] = useState(null); // Store the ID of the target
+
+    if (isLoading) {
+        <Loading></Loading>
+    }
+    const handleDragStart = (e, itemId) => { // Now receives itemId
+        setDragging(true);
+        setDraggedItemId(itemId); // Store the ID
+        e.dataTransfer.setData('text/plain', itemId); // Still needed for some browsers
+    };
+
+    const handleDragOver = (e, targetItemId) => { // Now receives targetItemId
+        e.preventDefault();
+        setDropTargetId(targetItemId); // Store the ID of the target
+    };
+
+    const handleDragEnd = () => {
+        setDragging(false);
+        setDraggedItemId(null);
+        setDropTargetId(null);
+    };
+
+const handleDrop = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    if (!draggedItemId ||!dropTargetId || draggedItemId === dropTargetId) {
+        return;
+    }
+
+    // 1. Update the local state to reflect the new order
+    const newCardData = [...cardData];
+    const draggedIndex = newCardData.findIndex(task => task._id === draggedItemId);
+    const dropIndex = newCardData.findIndex(task => task._id === dropTargetId);
+
+    if (draggedIndex === -1 || dropIndex === -1) {
+        return; // Handle not found
+    }
+
+    const [removed] = newCardData.splice(draggedIndex, 1);
+    newCardData.splice(dropIndex, 0, removed);
+
+    setCardData(newCardData); 
+
+    newCardData.forEach((task, index) => {
+        task.order = index; 
+    });
+
+
+    try {
+        const updatePromises = newCardData.map(task => {
+            const url = `/alltasks/${task._id}`;
+            return axiosPublic.patch(url, { order: task.order });
+        });
+
+        await Promise.all(updatePromises);
+        setCardData(newCardData);
+    } catch (error) {
+        console.error("Error updating task order:", error);
+        setRefresh(!refresh);
+        setIsLoading(false);
+    }
+
+    setDragging(false);
+    setDraggedItemId(null);
+    setDropTargetId(null);
+};
+
+    const showSwal = (icon, title, text, timer = 2000, showConfirmButton = false) => {
+        Swal.fire({
+            icon,
+            title,
+            text,
+            timer,
+            showConfirmButton
+        });
+    };
 
     useEffect(() => {
         const fetchTasks = async () => {
@@ -50,15 +134,34 @@ const AllDataCard = () => {
 
     const handleDeleteTask = async (taskId) => {
         try {
-            const response = await axiosPublic.delete(`/alltasks/${taskId}`);
-            if (!response.data) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            const result = await Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!"
+            });
+    
+            if (result.isConfirmed) {
+                const response = await axiosPublic.delete(`/alltasks/${taskId}`);
+    
+                if (!response.data) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+    
+                setCardData(cardData.filter(task => task._id !== taskId));
+    
+                showSwal('success', 'Deleted!', 'Your task has been deleted.');
+            } else if (result.isDismissed) {
+                if (result.dismiss === Swal.DismissReason.cancel) {
+                    showSwal('info', 'Cancelled', 'Task deletion cancelled', 1500); 
+                }
             }
-
-            setCardData(cardData.filter(task => task._id !== taskId));
-
+    
         } catch (error) {
-            console.error("Error deleting task:", error);
+            showSwal('error', 'Error!', error.message || 'Failed to delete task.');
         }
     };
 
@@ -131,32 +234,36 @@ const AllDataCard = () => {
         const description = newTask.description.trim();
     
         if (!title) {
-            alert("Task title is required.");
+            showSwal('warning', 'Warning!', 'Task title is required.');
+            return;
+        }
+        if (!description) {
+            showSwal('warning', 'Warning!', 'Task description is required.');
             return;
         }
     
         if (title.length > 50) {
-            alert("Task title must be at most 50 characters.");
+            showSwal('warning', 'Warning!', 'Task title must be at most 50 characters.');
             return;
         }
     
         if (description.length > 200) {
-            alert("Task description must be at most 200 characters.");
+            showSwal('warning', 'Warning!', 'Task description must be at most 200 characters.');
             return;
         }
     
         try {
           const timestamp = currentDate.toISOString().split('T')[0] + ' ' + currentDate.toLocaleTimeString();;
     
-            const taskWithUserInfo = {
-                ...newTask,
-                title: title,
-                description: description,
-                userEmail: user.email,
-                timestamp: timestamp,
-            };
-    
-            const response = await axiosPublic.post('/alltasks', taskWithUserInfo);
+          const newTaskWithId = { 
+            ...newTask,
+            title: title,
+            description: description,
+            userEmail: user.email,
+            timestamp: timestamp
+        };
+
+        const response = await axiosPublic.post('/alltasks', newTaskWithId);
     
             if (!response.data) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -164,13 +271,15 @@ const AllDataCard = () => {
     
             setRefresh(!refresh);
             handleCloseModal(); 
-            setNewTask({ title: "", description: "", category: "To-Do" }); // Reset the form
+            setNewTask({ title: "", description: "", category: "To-Do" }); 
           setCardData(prevCardData => [...prevCardData, response.data]);
-    
+          showSwal('success', 'Congratulations!', 'New Task Added'); 
+
         } catch (error) {
-            console.error("Error adding task:", error);
-            alert("An error occurred while adding the task. Please try again later.");
+            showSwal('error', 'Error!', error.message || "An error occurred while adding the task.");
+
         }
+        
     };
 
     const handleUpdateSubmit = async (e) => {
@@ -178,21 +287,16 @@ const AllDataCard = () => {
   
       const title = newTask.title.trim();
       const description = newTask.description.trim();
-  
-      if (!title) {
-          alert("Task title is required.");
-          return;
-      }
-  
-      if (title.length > 50) {
-          alert("Task Updated title must be at most 50 characters.");
-          return;
-      }
-  
-      if (description.length > 200) {
-          alert("Task Updated description must be at most 200 characters.");
-          return;
-      }
+
+    if (title.length > 50) {
+        showSwal('warning', 'Warning!', 'Updated Task title must be at most 50 characters.');
+        return;
+    }
+
+    if (description.length > 200) {
+        showSwal('warning', 'Warning!', 'Updated Task description must be at most 200 characters.'); 
+        return;
+    }
   
       try {
           const updatedTask = {
@@ -208,21 +312,77 @@ const AllDataCard = () => {
   
           setRefresh(!refresh);
           handleCloseUpdateModal();
+          showSwal('success', 'Congratualtions!', 'Task Updated Successfully'); 
           setNewTask({ title: "", description: "", category: "" });
   
       } catch (error) {
-          console.error("Error updating task:", error);
-          alert("An error occurred while updating the task. Please try again later."); // User-friendly error message
+        showSwal('error', 'Error!', `${error.message}`); 
       }
   };
     const filteredTasks = cardData.filter(({ userEmail }) => 
       userEmail === user?.email
     );
+    const onDragStart = (e, itemId) => { // Pass itemId to onDragStart
+        setDraggedItemId(itemId); // Store the dragged item's ID
+        e.dataTransfer.setData('text/plain', itemId); // This is still important
+    };
 
+    const [targetCategory, setTargetCategory] = useState(null)
+
+    const onDrop = (targetCategory) => { 
+        if (!draggedItemId || !targetCategory) {
+            return;
+        }
+
+        let originalCategory;
+
+        setCardData(prevCardData => {
+            return prevCardData.map(task => {
+                if (task._id === draggedItemId) {
+                    originalCategory = task.category;
+                    return { ...task, category: targetCategory };
+                }
+                return task;
+            });
+        });
+
+        axiosPublic.patch(`/alltasks/${draggedItemId}`, { category: targetCategory })
+            .then(() => {
+                setRefresh(!refresh);
+                showSwal('success', 'Succss!', 'Category Changed Successfully'); 
+            })
+            .catch(error => {
+                console.error("Error updating task category:", error);
+                setCardData(prevCardData => {
+                    return prevCardData.map(task => {
+                        if (task._id === draggedItemId) {
+                            return { ...task, category: originalCategory };
+                        }
+                        return task;
+                    });
+                });
+                showSwal('error', 'Error', 'Failed to Change Task Category. Please try again.'); 
+            })
+            .finally(() => setDraggedItemId(null)); 
+    };
     return (
         <div className="grid lg:grid-cols-3  md:grid-cols-2 sm:grid-cols-1 grid-cols-1 gap-2">
-            {filteredTasks.map((data) => (
-                <Card key={data._id} className="shadow-2xl  min-h-[260px] max-h-[600px] shadow-black min-w-64 sm:min-w-72 md:min-w-64 lg:min-w-72 xl:min-w-80 max-w-64 sm:max-w-72 md:max-w-64 lg:max-w-72 xl:max-w-80 mx-auto bg-green-100 rounded-md">
+            <DropArea onDrop={() => onDrop("To-Do")} onDragEnter={() => setTargetCategory("To-Do")}>To Do</DropArea>
+            <DropArea onDrop={() => onDrop("In Progress")} onDragEnter={() => setTargetCategory("In Progress")}>In Progress</DropArea>
+            <DropArea onDrop={() => onDrop("Done")} onDragEnter={() => setTargetCategory("Done")}>Done</DropArea>
+
+            {filteredTasks.map((data , index) => (
+                <div key={data._id}>
+<Card key={data._id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, data._id)} // Pass data._id
+                    onDragOver={(e) => handleDragOver(e, data._id)}   // Pass data._id
+                    onDragEnd={handleDragEnd}
+                    onDrop={handleDrop}
+                    className={`shadow-2xl min-h-[260px] max-h-[600px] shadow-black min-w-48 active:opacity-70 cursor-grab sm:min-w-68 md:min-w-56 lg:min-w-68 xl:min-w-80 max-w-48 sm:max-w-72 md:max-w-56 lg:max-w-68 xl:max-w-80 mx-auto bg-green-100 rounded-md 
+                    ${dragging && draggedItemId === data._id ? 'opacity-50' : ''}  // Use draggedItemId
+                    ${dropTargetId === data._id ? 'border-2 border-blue-500' : ''} // Use dropTargetId
+                    `}>
                     <div className="w-full">
                         <p className="text-xl font-semibold">{data.title}</p>
                         <h1 className="opacity-70 my-2 text-xs ">{data.description}</h1>
@@ -231,7 +391,7 @@ const AllDataCard = () => {
                       </div>
                     <div className="w-full">
                         <div className="flex gap-1 mx-auto justify-center">
-                        <Button
+                        <Button className="sm:block hidden"
                          onClick={() => handleCategoryClick(data._id, "To-Do")}
                          disabled={data.category === "To-Do" || data.category === "Done"}>
                           <RiTodoFill />
@@ -259,11 +419,12 @@ const AllDataCard = () => {
                         </div>
                     </div>
                 </Card>
+                </div>
+                
             ))}
-
             <Card
                 onClick={handleAddTask}
-                className="shadow-2xl min-h-[260px] max-h-[320px] shadow-black min-w-64 sm:min-w-72 md:min-w-64 lg:min-w-72 xl:min-w-80 max-w-64 sm:max-w-72 md:max-w-64 lg:max-w-72 xl:max-w-80 mx-auto bg-green-100 rounded-md"
+                className="shadow-2xl max-h-[320px] shadow-black min-w-48 sm:min-w-72 md:min-w-56 lg:min-w-68 xl:min-w-80 max-w-48 sm:max-w-72 md:max-w-56 lg:max-w-68 xl:max-w-80 mx-auto bg-green-100 rounded-md"
             >
                 <div className="flex flex-col justify-center items-center">
                     <CgAdd className="text-5xl" />
@@ -272,7 +433,7 @@ const AllDataCard = () => {
             </Card>
 
             {modalOpen && (
-                <div className="fixed justify-center mx-auto top-32 z-50 right-0 left-0 bottom-32 rounded-xl w-[400px] md:w-[500px] lg:w-[600px] h-auto flex flex-col text-center ">
+                <div className="fixed justify-center mx-auto top-32 z-50 right-0 left-0 bottom-32 rounded-xl w-[300px] md:w-[450px] lg:w-[600px] h-auto flex flex-col text-center ">
                     <Card className="bg-teal-100 ">
                         <form onSubmit={handleSubmit}>
                             <TextInput
@@ -307,7 +468,7 @@ const AllDataCard = () => {
             )}
 
             {updateModalOpen && (
-                <div className="fixed justify-center mx-auto top-32 z-50 right-0 left-0 bottom-32 rounded-xl w-[400px] md:w-[500px] lg:w-[600px] h-auto flex flex-col text-center">
+                <div className="fixed justify-center mx-auto top-32 z-50 right-0 left-0 bottom-32 rounded-xl w-[300px] md:w-[450px] lg:w-[600px] h-auto flex flex-col text-center">
                     <Card className="bg-stone-300">
                         <form onSubmit={handleUpdateSubmit}>
                             <TextInput

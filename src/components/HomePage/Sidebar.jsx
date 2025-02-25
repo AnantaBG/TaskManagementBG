@@ -49,7 +49,7 @@ const Sidebar = () => {
                         <Link
                         to={Tasks.link}
                         key={id}
-                        className={`my-2 flex items-center gap-2 text-xl p-2 rounded-xl transition-all duration-300
+                        className={`my-2 flex items-center gap-2 text-xl p-1 rounded-xl transition-all duration-300
                             ${activeLink === Tasks.link ? "bg-white" : "hover:bg-gray-200"}`}
                     >
                         {Tasks.icon} {Tasks.title}

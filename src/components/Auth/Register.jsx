@@ -94,7 +94,7 @@ const navigate = useNavigate();
     })
   }
     return (
-<div className="my-10 w-6/12 mx-auto">
+<div className="my-10 w-9/12 mx-auto">
     <Helmet>
         <title>Taskman || Register</title>
     </Helmet>
